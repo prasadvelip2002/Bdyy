@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank You! 🎂</title>
+<!-- 3D Confetti and Fireworks Library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<!-- 3D Card Tilt Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height:100vh;
+    /* Darker, rich gradient to make fireworks and sparkles pop! */
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #e94560);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    position:relative;
+    color: #fff;
+  }
+  @keyframes gradientShift {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* ---------- Sparkle Cursor ---------- */
+  .sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+    animation: sparkleAnim 0.8s forwards;
+  }
+  @keyframes sparkleAnim {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    100% { transform: scale(0) translateY(20px); opacity: 0; }
+  }
+
+  /* ---------- Entry card ---------- */
+  .card {
+    /* Glassmorphism effect */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding:36px 30px;
+    border-radius:20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    max-width:400px;
+    width:90%;
+    text-align:center;
+    z-index:10;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .card h1 { font-size:1.6rem; margin-bottom:10px; color:#fff; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+  .card p { color:#e0e0e0; font-size:0.95rem; margin-bottom:25px; }
+  
+  .card input {
+    width:100%; padding:14px 16px; border-radius:12px;
+    border: 2px solid rgba(255,255,255,0.3); 
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size:1rem; margin-bottom:18px;
+    outline:none; transition: border 0.3s, background 0.3s;
+  }
+  .card input::placeholder { color: rgba(255,255,255,0.7); }
+  .card input:focus { border-color: #e94560; background: rgba(255,255,255,0.25); }
+  
+  .card button {
+    width:100%; padding:14px; border:none; border-radius:12px;
+    background: linear-gradient(135deg, #e94560, #ff6a88);
+    color:#fff; font-size:1.1rem; font-weight:700; cursor:pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+    animation: pulseButton 2s infinite; /* Added a subtle glowing pulse */
+  }
+  .card button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(233, 69, 96, 0.7); animation: none; }
+  
+  @keyframes pulseButton {
+    0% { box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4); }
+    50% { box-shadow: 0 5px 25px rgba(253, 105, 137, 0.8); }
+    100% { box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4); }
+  }
+  
+  .hidden { display:none !important; }
+  .card.out { opacity:0; transform:scale(0.8) translateY(-50px); pointer-events:none; }
+
+  /* ---------- Thank-you view ---------- */
+  .thanks-wrap {
+    display:none; text-align:center; color:#fff; z-index:5; padding:20px;
+  }
+  .thanks-wrap h1 {
+    font-size:2.5rem; text-shadow:0 4px 20px rgba(0,0,0,0.5);
+    margin-bottom:10px;
+  }
+  .thanks-wrap .name {
+    font-size:3.5rem; font-weight:900;
+    background: linear-gradient(90deg, #fff, #ffe29f, #ff6a88, #fff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation: shine 3s linear infinite, fadeIn 1.2s ease forwards;
+    background-size:200% auto;
+    display:inline-block;
+    filter: drop-shadow(0 0 15px rgba(255,106,136,0.4));
+    opacity: 0;
+  }
+  @keyframes shine { to { background-position:200% center; } }
+  
+  .thanks-wrap p { 
+    font-size:1.3rem; margin-top:15px; opacity:0.95; 
+    min-height: 1.5em; /* Pre-allocate space for typewriter */
+    font-weight: 500;
+  }
+  
+  .hearts { font-size:2.5rem; margin-top:25px; }
+  .hearts span { display:inline-block; animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity:0; }
+
+  @keyframes pop {
+    0% { transform:scale(0) rotate(-30deg); opacity:0; }
+    100% { transform:scale(1) rotate(0deg); opacity:1; }
+  }
+
+  .fade-in { animation: fadeIn 1.2s ease forwards; opacity:0; }
+  @keyframes fadeIn { to { opacity:1; } }
+
+  /* ---------- Mobile Responsiveness ---------- */
+  @media (max-width: 600px) {
+    .card { padding: 30px 20px; }
+    .card h1 { font-size: 1.4rem; }
+    .thanks-wrap h1 { font-size: 2rem; }
+    .thanks-wrap .name { 
+      font-size: 2.5rem; 
+      word-break: break-word; /* Prevents long names from breaking the screen width */
+    }
+    .thanks-wrap p { font-size: 1.1rem; }
+    .hearts { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Entry card with 3D Tilt properties -->
+  <div class="card" id="entryCard" data-tilt data-tilt-glare data-tilt-max-glare="0.5" data-tilt-max="15" data-tilt-speed="400" data-tilt-scale="1.05">
+    <h1>🎉 You clicked my birthday link!</h1>
+    <p>Enter your name and I'll say thanks the fun way 👇</p>
+    <input type="text" id="nameInput" placeholder="Your beautiful name..." maxlength="30" autocomplete="off">
+    <button onclick="showThanks()">Say Thank You 🎈</button>
+  </div>
+
+  <!-- Thank you view -->
+  <div class="thanks-wrap" id="thanksView">
+    <h1 class="fade-in">Thank You,</h1>
+    <div class="name" id="nameDisplay"></div>
+    <!-- Container for typewriter effect -->
+    <p id="typewriterText"></p>
+    <div class="hearts" id="heartsRow"></div>
+  </div>
+
+<script>
+  // --- 1. Sparkle Mouse Cursor ---
+  document.addEventListener('mousemove', function(e) {
+    if (Math.random() > 0.5) return; // limit sparkle generation for performance
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = (e.pageX - 3) + 'px';
+    sparkle.style.top = (e.pageY - 3) + 'px';
+    
+    // Pick a random vibrant color
+    const colors = ['#ffffff', '#ffe29f', '#ff6a88', '#fbc2eb', '#4facfe'];
+    sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
+    
+    document.body.appendChild(sparkle);
+    
+    setTimeout(() => {
+      sparkle.remove();
+    }, 800);
+  });
+
+  // --- 2. Typewriter Effect Logic ---
+  function typeWriter(text, elementId, speed) {
+    let i = 0;
+    const elem = document.getElementById(elementId);
+    elem.innerHTML = '';
+    return new Promise(resolve => {
+      function type() {
+        if (i < text.length) {
+          elem.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          resolve();
+        }
+      }
+      type();
+    });
+  }
+
+  // --- 3. Fireworks Background Logic ---
+  let fireworksInterval;
+  function startFireworks() {
+    var duration = 15 * 1000;
+    var animationEnd = Date.now() + duration;
+    var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    fireworksInterval = setInterval(function() {
+      var timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        return clearInterval(fireworksInterval);
+      }
+      var particleCount = 50 * (timeLeft / duration);
+      
+      confetti({
+        ...defaults, particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+      });
+      confetti({
+        ...defaults, particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+      });
+    }, 250);
+  }
+
+  // --- Main Action on Button Click ---
+  async function showThanks() {
+    const val = document.getElementById('nameInput').value.trim();
+    if (!val) {
+      document.getElementById('nameInput').focus();
+      return;
+    }
+
+    const card = document.getElementById('entryCard');
+    // Animate card away
+    card.classList.add('out');
+
+    setTimeout(async () => {
+      card.classList.add('hidden');
+      const view = document.getElementById('thanksView');
+      view.style.display = 'block';
+      
+      // Special VIP Easter Egg logic
+      let finalName = val;
+      let finalMessage = "for all the love and beautiful wishes on my birthday! 🎂";
+      
+      const lowerName = val.toLowerCase();
+      if (lowerName === "mom" || lowerName === "mother") {
+         finalMessage = "for everything you do. You're the absolute best! I love you! ❤️";
+      } else if (lowerName === "dad" || lowerName === "father") {
+         finalMessage = "for always being there. You're my hero! ❤️";
+      } else if (lowerName === "bestie") {
+         finalMessage = "for being the most amazing friend ever! We are going to party hard! 🥳🍹";
+      }
+
+      document.getElementById('nameDisplay').textContent = finalName;
+
+      // --- 4. 3D Confetti Cannon Blast ---
+      confetti({
+        particleCount: 150,
+        spread: 120,
+        origin: { y: 0.6 },
+        colors: ['#ff6a88','#ff9a8b','#a18cd1','#fbc2eb', '#ffffff', '#e94560']
+      });
+
+      // Start typewriter effect
+      await typeWriter(finalMessage, 'typewriterText', 45);
+
+      // Show emojis after typing finishes
+      const heartsRow = document.getElementById('heartsRow');
+      heartsRow.innerHTML = '';
+      const emojis = ['🎉','✨','❤️','🎁','🥂'];
+      emojis.forEach((e,i) => {
+        const s = document.createElement('span');
+        s.textContent = e;
+        s.style.animationDelay = (i * 0.1) + 's';
+        heartsRow.appendChild(s);
+      });
+
+      // --- 5. Start Fireworks show ---
+      startFireworks();
+
+    }, 500); // Wait for card to slide out
+  }
+
+  // Trigger on Enter key
+  document.getElementById('nameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') showThanks();
+  });
+</script>
+</body>
+</html>
